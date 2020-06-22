@@ -32,10 +32,10 @@ public class ExcludeFromCodeCoverageFilterTest extends FilterTestBase {
 	private AbstractInsnNode toInclusive;
 
 	@Test
-	public void should_filter_exclude_annotation_on_method() {
+	public void should_filter_method_with_exclude_annotation_without_package() {
 		final MethodNode m = new MethodNode(InstrSupport.ASM_API_VERSION, 0,
 				"hashCode", "()I", null, null);
-		m.visitAnnotation("Lorg/jacoco/core/ExcludeFromCodeCoverage;", false);
+		m.visitAnnotation("LExcludeFromCodeCoverage;", false);
 
 		m.visitInsn(Opcodes.ICONST_0);
 		m.visitInsn(Opcodes.IRETURN);
@@ -46,15 +46,30 @@ public class ExcludeFromCodeCoverageFilterTest extends FilterTestBase {
 	}
 
 	@Test
-	public void should_filter_exclude_annotation_on_class() {
+	public void should_filter_method_with_exclude_annotation_in_inner_class() {
 		final MethodNode m = new MethodNode(InstrSupport.ASM_API_VERSION, 0,
 				"hashCode", "()I", null, null);
+		m.visitAnnotation(
+				"Lsomething/anything/SomeClass$ExcludeFromCodeCoverage;",
+				false);
 
 		m.visitInsn(Opcodes.ICONST_0);
 		m.visitInsn(Opcodes.IRETURN);
 
-		context.classAnnotations
-				.add("Lorg/jacoco/core/ExcludeFromCodeCoverage;");
+		filter.filter(m, context, output);
+
+		assertMethodIgnored(m);
+	}
+
+	@Test
+	public void should_filter_method_with_exclude_annotation_with_package() {
+		final MethodNode m = new MethodNode(InstrSupport.ASM_API_VERSION, 0,
+				"hashCode", "()I", null, null);
+		m.visitAnnotation("Lsomething/anything/ExcludeFromCodeCoverage;",
+				false);
+
+		m.visitInsn(Opcodes.ICONST_0);
+		m.visitInsn(Opcodes.IRETURN);
 
 		filter.filter(m, context, output);
 
@@ -75,13 +90,67 @@ public class ExcludeFromCodeCoverageFilterTest extends FilterTestBase {
 	}
 
 	@Test
-	public void should_not_filter_other_annotation() {
+	public void should_not_filter_method_with_other_annotation() {
 		final MethodNode m = new MethodNode(InstrSupport.ASM_API_VERSION, 0,
 				"hashCode", "()I", null, null);
 		m.visitAnnotation("Lother/Annotation;", false);
 
 		m.visitInsn(Opcodes.ICONST_0);
 		m.visitInsn(Opcodes.IRETURN);
+
+		filter.filter(m, context, output);
+
+		assertIgnored();
+	}
+
+	@Test
+	public void should_filter_class_with_exclude_annotation_without_package() {
+		final MethodNode m = new MethodNode(InstrSupport.ASM_API_VERSION, 0,
+				"hashCode", "()I", null, null);
+		m.visitInsn(Opcodes.ICONST_0);
+		m.visitInsn(Opcodes.IRETURN);
+		context.classAnnotations.add("LExcludeFromCodeCoverage;");
+
+		filter.filter(m, context, output);
+
+		assertMethodIgnored(m);
+	}
+
+	@Test
+	public void should_filter_class_with_exclude_annotation_in_inner_class() {
+		final MethodNode m = new MethodNode(InstrSupport.ASM_API_VERSION, 0,
+				"hashCode", "()I", null, null);
+		m.visitInsn(Opcodes.ICONST_0);
+		m.visitInsn(Opcodes.IRETURN);
+		context.classAnnotations
+				.add("Lsomething/anything/SomeClass$ExcludeFromCodeCoverage;");
+
+		filter.filter(m, context, output);
+
+		assertMethodIgnored(m);
+	}
+
+	@Test
+	public void should_filter_class_with_exclude_annotation_with_package() {
+		final MethodNode m = new MethodNode(InstrSupport.ASM_API_VERSION, 0,
+				"hashCode", "()I", null, null);
+		m.visitInsn(Opcodes.ICONST_0);
+		m.visitInsn(Opcodes.IRETURN);
+		context.classAnnotations
+				.add("Lsomething/anything/ExcludeFromCodeCoverage;");
+
+		filter.filter(m, context, output);
+
+		assertMethodIgnored(m);
+	}
+
+	@Test
+	public void should_not_filter_class_with_other_annotation() {
+		final MethodNode m = new MethodNode(InstrSupport.ASM_API_VERSION, 0,
+				"hashCode", "()I", null, null);
+		m.visitInsn(Opcodes.ICONST_0);
+		m.visitInsn(Opcodes.IRETURN);
+		context.classAnnotations.add("Lother/Annotation;");
 
 		filter.filter(m, context, output);
 

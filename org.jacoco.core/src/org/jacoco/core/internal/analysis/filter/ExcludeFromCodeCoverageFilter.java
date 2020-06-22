@@ -15,9 +15,7 @@ package org.jacoco.core.internal.analysis.filter;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.MethodNode;
 
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -26,8 +24,6 @@ import java.util.regex.Pattern;
  * <code>ExcludeFromCodeCoverage</code>.
  */
 public class ExcludeFromCodeCoverageFilter implements IFilter {
-
-	public static final String EXCLUDEFROMCODECOVERAGE = "Lorg/jacoco/core/ExcludeFromCodeCoverage;";
 
 	@Override
 	public void filter(MethodNode methodNode, IFilterContext context,
@@ -51,7 +47,10 @@ public class ExcludeFromCodeCoverageFilter implements IFilter {
 	}
 
 	private static boolean matches(final String annotation) {
-		return annotation.equals(EXCLUDEFROMCODECOVERAGE);
+		final String name = annotation
+				.substring(Math.max(annotation.lastIndexOf('/'),
+						annotation.lastIndexOf('$')) + 1);
+		return name.contains("ExcludeFromCodeCoverage");
 	}
 
 	private static boolean presentIn(final List<AnnotationNode> annotations) {
